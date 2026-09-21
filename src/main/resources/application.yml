@@ -1,0 +1,58 @@
+spring:
+  application:
+    name: payment-reminder
+  datasource:
+    # Defaults match the local PostgreSQL in compose.yml.
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/payment_reminder}
+    username: ${DB_USERNAME:payment_reminder}
+    password: ${DB_PASSWORD:payment_reminder}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+
+server:
+  port: ${SERVER_PORT:8080}
+  error:
+    include-stacktrace: never
+    include-exception: false
+
+app:
+  time-zone: ${APP_TIME_ZONE:Europe/Moscow}
+  notification-time: ${APP_NOTIFICATION_TIME:09:00}
+  planning-cron: ${REMINDER_SCHEDULER_CRON:${APP_PLANNING_CRON:0 0 9 * * *}}
+  delivery-cron: ${APP_DELIVERY_CRON:0 * * * * *}
+  delivery-lease: ${APP_DELIVERY_LEASE:PT5M}
+  delivery-batch: ${APP_DELIVERY_BATCH:20}
+  polling-enabled: ${APP_POLLING_ENABLED:true}
+  polling-delay-ms: ${APP_POLLING_DELAY_MS:1000}
+
+telegram:
+  # Credentials come from the environment; empty values disable delivery.
+  bot-token: ${TELEGRAM_BOT_TOKEN:}
+  chat-id: ${TELEGRAM_CHAT_ID:}
+  max-attempts: ${TELEGRAM_MAX_ATTEMPTS:3}
+  retry-delay: ${TELEGRAM_RETRY_DELAY:PT5M}
+  connect-timeout: ${TELEGRAM_CONNECT_TIMEOUT:PT5S}
+  # Must exceed polling-timeout so long polling is not cut off by the read timeout.
+  read-timeout: ${TELEGRAM_READ_TIMEOUT:PT35S}
+  polling-timeout: ${TELEGRAM_POLLING_TIMEOUT:PT25S}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+  info:
+    env:
+      enabled: true
+
+info:
+  app:
+    name: ${spring.application.name}
+    description: Recurring manual payment reminders

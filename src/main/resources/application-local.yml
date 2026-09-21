@@ -1,0 +1,17 @@
+# Convenience profile for local runs and Telegram smoke testing.
+# Activate with: SPRING_PROFILES_ACTIVE=local ./gradlew bootRun
+#
+# It only changes scheduling/polling so notifications are produced within seconds instead of
+# waiting for 09:00. Database settings and Telegram credentials are still taken from the
+# environment (application.yml), so real tokens must be provided externally.
+app:
+  # available_at is computed from this time, so 00:00 makes new jobs due immediately.
+  notification-time: "00:00"
+  planning-cron: "*/10 * * * * *"
+  delivery-cron: "*/10 * * * * *"
+  polling-enabled: true
+  polling-delay-ms: 1000
+
+logging:
+  level:
+    com.paymentreminder: INFO
