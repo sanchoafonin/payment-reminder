@@ -26,6 +26,52 @@ run_as_root() {
     fi
 }
 
+java_major_version() {
+    java -version 2>&1 | awk -F '[".]' '/version/ { print $2; exit }'
+}
+
+install_java() {
+    case "$(uname -s)" in
+        Darwin)
+            if ! command -v brew >/dev/null 2>&1; then
+                fail "для установки JDK 21 установите Homebrew с https://brew.sh"
+            fi
+            log "Устанавливаю JDK 21 через Homebrew"
+            brew install openjdk@21
+            export JAVA_HOME="$(brew --prefix openjdk@21)/libexec/openjdk.jdk/Contents/Home"
+            export PATH="${JAVA_HOME}/bin:${PATH}"
+            ;;
+        Linux)
+            if command -v apt-get >/dev/null 2>&1; then
+                log "Устанавливаю JDK 21 через apt"
+                run_as_root apt-get update
+                run_as_root apt-get install -y openjdk-21-jdk
+            elif command -v dnf >/dev/null 2>&1; then
+                log "Устанавливаю JDK 21 через dnf"
+                run_as_root dnf install -y java-21-openjdk-devel
+            else
+                fail "поддерживаются apt и dnf; установите JDK 21 вручную"
+            fi
+            ;;
+        *) fail "неподдерживаемая ОС: $(uname -s)" ;;
+    esac
+}
+
+ensure_java() {
+    local version=""
+    if command -v java >/dev/null 2>&1; then
+        version="$(java_major_version)"
+    fi
+
+    if [[ "${version}" != "21" ]]; then
+        install_java
+        version="$(java_major_version)"
+    fi
+
+    [[ "${version}" == "21" ]] || fail "требуется активная Java 21, обнаружена версия: ${version:-неизвестна}"
+    log "Java 21 доступна"
+}
+
 install_docker_macos() {
     if ! command -v brew >/dev/null 2>&1; then
         fail "установите Homebrew с https://brew.sh и повторите запуск"
@@ -102,6 +148,7 @@ create_env() {
 }
 
 main() {
+    ensure_java
     ensure_docker
     create_env
 
