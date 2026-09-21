@@ -30,6 +30,14 @@ Backend-сервис для учёта регулярных ручных пла�
 
 Нужны Docker с Compose и свободные порты `5432` и `8080` на loopback-интерфейсе.
 
+Автоматическая подготовка на macOS, Debian/Ubuntu и Fedora: скрипт проверит Docker и Compose, при необходимости установит их, создаст `.env` и запустит сервисы:
+
+```bash
+./setup.sh
+```
+
+Существующий `.env` скрипт не перезаписывает. На macOS для автоматической установки Docker Desktop нужен Homebrew, на Linux нужен `sudo` или запуск от `root`. `compose.yml` также содержит безопасные локальные значения по умолчанию, поэтому PostgreSQL можно запустить из IDE без `.env`.
+
 ```bash
 cp .env.example .env
 # При необходимости заполните TELEGRAM_BOT_TOKEN и TELEGRAM_CHAT_ID.
@@ -94,7 +102,7 @@ SPRING_PROFILES_ACTIVE=local ./gradlew bootRun
 | `POSTGRES_DB` | `payment_reminder` | БД контейнера PostgreSQL |
 | `POSTGRES_USER` | `payment_reminder` | Пользователь контейнера PostgreSQL |
 | `POSTGRES_PASSWORD` | `payment_reminder` | Пароль контейнера PostgreSQL |
-| `POSTGRES_DATA_DIR` | `/Users/aleksandr/projects/postgres/payment-reminder` | Локальная директория данных PostgreSQL для Compose |
+| `POSTGRES_DATA_DIR` | `./.data/postgres` | Локальная директория данных PostgreSQL для Compose |
 | `SPRING_PROFILES_ACTIVE` | `local` в Compose | Активный Spring profile |
 | `SERVER_PORT` | `8080` | HTTP-порт bare run; Compose фиксирован на `8080` |
 | `APP_TIME_ZONE` | `Europe/Moscow` | Часовой пояс бизнес-дат |

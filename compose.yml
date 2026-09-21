@@ -3,13 +3,13 @@ services:
     image: postgres:17
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-payment_reminder}
+      POSTGRES_USER: ${POSTGRES_USER:-payment_reminder}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-payment_reminder}
     ports:
       - "127.0.0.1:5432:5432"
     volumes:
-      - ${POSTGRES_DATA_DIR}:/var/lib/postgresql/data
+      - ${POSTGRES_DATA_DIR:-./.data/postgres}:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
       interval: 5s
@@ -28,28 +28,28 @@ services:
         condition: service_healthy
     environment:
       # Inside the compose network PostgreSQL is reachable as "postgres".
-      DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
-      DB_USERNAME: ${POSTGRES_USER}
-      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-payment_reminder}
+      DB_USERNAME: ${POSTGRES_USER:-payment_reminder}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-payment_reminder}
       # The "local" profile makes planning/delivery run every 10s and sets
       # notification-time to 00:00 so notifications appear immediately.
       # Set SPRING_PROFILES_ACTIVE= (empty) for production-like scheduling.
-      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
-      APP_TIME_ZONE: ${APP_TIME_ZONE}
-      APP_NOTIFICATION_TIME: ${APP_NOTIFICATION_TIME}
-      REMINDER_SCHEDULER_CRON: ${REMINDER_SCHEDULER_CRON}
-      APP_PLANNING_CRON: ${APP_PLANNING_CRON}
-      APP_DELIVERY_CRON: ${APP_DELIVERY_CRON}
-      APP_DELIVERY_LEASE: ${APP_DELIVERY_LEASE}
-      APP_DELIVERY_BATCH: ${APP_DELIVERY_BATCH}
-      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
-      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID}
-      APP_POLLING_ENABLED: ${APP_POLLING_ENABLED}
-      APP_POLLING_DELAY_MS: ${APP_POLLING_DELAY_MS}
-      TELEGRAM_MAX_ATTEMPTS: ${TELEGRAM_MAX_ATTEMPTS}
-      TELEGRAM_RETRY_DELAY: ${TELEGRAM_RETRY_DELAY}
-      TELEGRAM_CONNECT_TIMEOUT: ${TELEGRAM_CONNECT_TIMEOUT}
-      TELEGRAM_READ_TIMEOUT: ${TELEGRAM_READ_TIMEOUT}
-      TELEGRAM_POLLING_TIMEOUT: ${TELEGRAM_POLLING_TIMEOUT}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
+      APP_TIME_ZONE: ${APP_TIME_ZONE:-Europe/Moscow}
+      APP_NOTIFICATION_TIME: ${APP_NOTIFICATION_TIME:-09:00}
+      REMINDER_SCHEDULER_CRON: ${REMINDER_SCHEDULER_CRON:-0 0 9 * * *}
+      APP_PLANNING_CRON: ${APP_PLANNING_CRON:-0 0 9 * * *}
+      APP_DELIVERY_CRON: ${APP_DELIVERY_CRON:-0 * * * * *}
+      APP_DELIVERY_LEASE: ${APP_DELIVERY_LEASE:-PT5M}
+      APP_DELIVERY_BATCH: ${APP_DELIVERY_BATCH:-20}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
+      APP_POLLING_ENABLED: ${APP_POLLING_ENABLED:-true}
+      APP_POLLING_DELAY_MS: ${APP_POLLING_DELAY_MS:-1000}
+      TELEGRAM_MAX_ATTEMPTS: ${TELEGRAM_MAX_ATTEMPTS:-3}
+      TELEGRAM_RETRY_DELAY: ${TELEGRAM_RETRY_DELAY:-PT5M}
+      TELEGRAM_CONNECT_TIMEOUT: ${TELEGRAM_CONNECT_TIMEOUT:-PT5S}
+      TELEGRAM_READ_TIMEOUT: ${TELEGRAM_READ_TIMEOUT:-PT35S}
+      TELEGRAM_POLLING_TIMEOUT: ${TELEGRAM_POLLING_TIMEOUT:-PT25S}
     ports:
       - "127.0.0.1:8080:8080"
